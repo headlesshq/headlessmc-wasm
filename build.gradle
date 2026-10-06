@@ -1,0 +1,59 @@
+plugins {
+    id 'java'
+    alias libs.plugins.quarkus
+}
+
+group = 'io.github.headlesshq'
+version = '3.0.0-RC2'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+// HeadlessMc compiled to WebAssembly with the GraalVM Web Image backend (native-image --tool:svm-wasm).
+// See scripts/build-web.sh. The browser has no sockets, threads or processes, so all modules
+// which need the Quarkus REST client (and with it Vert.x and Netty, which do not compile to Wasm)
+// are excluded. Everything that works on the in-memory file system is still available.
+configurations.configureEach {
+    exclude group: 'io.github.headlesshq', module: 'headlessmc-mods-distribution-modrinth'
+    exclude group: 'io.github.headlesshq', module: 'headlessmc-platform-paper'
+    exclude group: 'io.github.headlesshq', module: 'headlessmc-platform-purpur'
+    exclude group: 'io.github.headlesshq', module: 'headlessmc-java-distribution-foojay'
+    exclude group: 'io.github.headlesshq', module: 'headlessmc-net-rest'
+    exclude group: 'io.quarkus', module: 'quarkus-rest-client'
+    exclude group: 'io.quarkus', module: 'quarkus-rest-client-jackson'
+}
+
+dependencies {
+    // provided by the headlessmc git submodule, which is an included build (see settings.gradle)
+    implementation 'io.github.headlesshq:headlessmc-bom'
+    implementation 'io.github.headlesshq:headlessmc-java-distribution'
+    implementation 'io.github.headlesshq:headlessmc-os'
+    implementation 'io.github.headlesshq:headlessmc-console-completions'
+
+    implementation platform(libs.quarkus)
+    implementation libs.quarkus.arc
+    implementation libs.quarkus.picocli
+    implementation libs.inject
+    implementation libs.cdi
+    implementation libs.jspecify
+    runtimeOnly libs.slf4j.jboss
+
+    compileOnly libs.jetbrains.annotations
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
+
+    // provided by GraalVM itself when building with --tool:svm-wasm
+    compileOnly "org.graalvm.sdk:webimage-preview:${libs.versions.graalvm.webimage.get()}"
+    // for the substitutions in io.github.headlesshq.headlessmc.web.graal
+    compileOnly "org.graalvm.nativeimage:svm:${libs.versions.graalvm.svm.get()}"
+    compileOnly 'io.smallrye.common:smallrye-common-os'
+    compileOnly 'io.quarkus:quarkus-vertx'
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+    options.compilerArgs += ['--add-exports', 'java.base/jdk.internal.misc=ALL-UNNAMED']
+}

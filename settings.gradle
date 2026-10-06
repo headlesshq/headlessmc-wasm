@@ -1,0 +1,28 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+        mavenLocal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+
+    versionCatalogs {
+        // share the versions of HeadlessMc
+        libs {
+            from(files('headlessmc/gradle/libs.versions.toml'))
+            version('graalvm-webimage', '25.4.4.1.1')
+            version('graalvm-svm', '25.0.4')
+        }
+    }
+}
+
+rootProject.name = 'headlessmc-web'
+
+// HeadlessMc from the git submodule, its projects (group io.github.headlesshq)
+// are substituted for the dependencies on io.github.headlesshq:<project-name>.
+includeBuild('headlessmc')
