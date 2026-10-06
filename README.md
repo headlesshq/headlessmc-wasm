@@ -13,3 +13,5 @@ export PATH=/path/to/binaryen/bin:$PATH            # wasm-opt, binaryen 119+
 ./scripts/build-web.sh
 python3 -m http.server -d build/web 8000
 ```
+
+![Screenshot](docs/screenshot.png)
